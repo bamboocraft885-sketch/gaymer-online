@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Farosymboler – quiz</title>
+<style>
+:root{--bg:#f3f6f8;--card:#fff;--ink:#14212b;--mut:#5a6b78;--line:#cfd9e0;--acc:#0b5ea8;--ok:#1b7a3d;--okbg:#e2f3e8;--bad:#b3261e;--badbg:#fbe5e3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1820;--card:#18242e;--ink:#e8eef2;--mut:#9fb0bc;--line:#2c3e4b;--acc:#6db3f2;--ok:#6fd08f;--okbg:#17321f;--bad:#ff9b94;--badbg:#3a1c1a}}
+:root[data-theme="dark"]{--bg:#0f1820;--card:#18242e;--ink:#e8eef2;--mut:#9fb0bc;--line:#2c3e4b;--acc:#6db3f2;--ok:#6fd08f;--okbg:#17321f;--bad:#ff9b94;--badbg:#3a1c1a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 "Trebuchet MS","Segoe UI",Verdana,sans-serif}
+main{max-width:620px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.7rem;margin:.2em 0 .1em}
+.sub{color:var(--mut);margin:0 0 18px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:20px}
+.q{font-size:1.2rem;font-weight:700;margin:0 0 14px}
+.opt{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 10px;cursor:pointer}
+.opt:hover:enabled{border-color:var(--acc)}
+.opt:focus-visible,.btn:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}
+.opt.no{background:var(--badbg);border-color:var(--bad)}
+.exp{margin:12px 0 0;padding:12px 14px;border-left:5px solid var(--acc);background:var(--bg);border-radius:6px}
+.btn{font:inherit;font-weight:700;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px 22px;margin-top:14px;cursor:pointer}
+:root:not([data-theme="light"]) .btn{color:#0f1820}
+.big{font-size:2.4rem;font-weight:800;margin:.1em 0}
+[hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>Farosymboler</h1>
+<p class="sub">Vad betyder symbolerna på kemikalier och produkter?</p>
+<div class="bar" aria-hidden="true"><i id="bar"></i></div>
+<div class="card" id="quiz">
+<p class="sub" id="count"></p>
+<p class="q" id="q"></p>
+<div id="opts"></div>
+<div class="exp" id="exp" hidden></div>
+<button class="btn" id="next" hidden></button>
+</div>
+<div class="card" id="end" hidden>
+<p class="sub">Klart!</p>
+<p class="big" id="score"></p>
+<p id="msg"></p>
+<button class="btn" id="again">Försök igen</button>
+</div>
+</main>
+<script>
+var Q=[
+{q:"Vad betyder symbolen med en låga?",o:["Brandfarligt","Frätande","Giftigt","Miljöfarligt"],a:0,e:"Lågan visar att ämnet kan ta eld lätt, till exempel tändvätska eller sprit."},
+{q:"Vilken symbol har en dödskalle med korsade ben?",o:["Gas under tryck","Akut giftigt","Oxiderande","Explosivt"],a:1,e:"Dödskallen betyder att ämnet kan vara livsfarligt om man får det i sig, andas in det eller får det på huden."},
+{q:"Symbolen visar en hand och en metallbit som håller på att lösas upp av droppar. Vad betyder den?",o:["Brandfarligt","Irriterande","Frätande","Gas under tryck"],a:2,e:"Frätande ämnen, som starka syror och baser, kan skada hud och ögon och angripa metall."},
+{q:"Vad visar symbolen med en död fisk och ett dött träd?",o:["Farligt för miljön","Farligt att dricka","Måste förvaras kallt","Får inte kastas i skogen"],a:0,e:"Symbolen varnar för ämnen som skadar djur och växter, särskilt i vatten. Sådana ämnen ska lämnas som farligt avfall."},
+{q:"Vad betyder symbolen med en gasflaska?",o:["Giftig gas","Gas under tryck","Frätande gas","Gasen är tom"],a:1,e:"Gasflaskor kan explodera om de blir varma eller tappas, och kall gas kan ge köldskador."},
+{q:"Vad betyder en symbol med ett utropstecken?",o:["Hälsofarligt, till exempel irriterar hud eller ögon","Mycket giftigt","Kan explodera","Ämnet är nytt"],a:0,e:"Utropstecknet varnar för mindre allvarliga hälsorisker, som hudirritation eller allergi."}
+];
+var i=0,s=0,done=false;
+function $(x){return document.getElementById(x)}
+function show(){
+done=false;var d=Q[i];
+$("count").textContent="Fråga "+(i+1)+" av "+Q.length;
+$("q").textContent=d.q;
+$("bar").style.width=(i/Q.length*100)+"%";
+$("exp").hidden=true;$("next").hidden=true;
+var box=$("opts");box.innerHTML="";
+d.o.forEach(function(t,k){
+var b=document.createElement("button");b.className="opt";b.textContent=t;
+b.onclick=function(){pick(k)};box.appendChild(b);
+});
+}
+function pick(k){
+if(done)return;done=true;
+var d=Q[i],bs=$("opts").children;
+for(var j=0;j<bs.length;j++){bs[j].disabled=true;if(j===d.a)bs[j].classList.add("ok");}
+if(k===d.a){s++;$("exp").textContent="Rätt! "+d.e}
+else{bs[k].classList.add("no");$("exp").textContent="Inte riktigt. "+d.e}
+$("exp").hidden=false;
+$("next").textContent=i<Q.length-1?"Nästa fråga":"Se resultat";
+$("next").hidden=false;$("next").focus();
+}
+$("next").onclick=function(){
+i++;
+if(i<Q.length){show()}
+else{
+$("quiz").hidden=true;$("end").hidden=false;$("bar").style.width="100%";
+$("score").textContent=s+" av "+Q.length+" rätt";
+$("msg").textContent=s===Q.length?"Perfekt! Du kan farosymbolerna.":s>=4?"Bra jobbat! Läs om de du missade och prova igen.":"Bra start! Försök igen så sitter de snart.";
+}
+};
+$("again").onclick=function(){i=0;s=0;$("end").hidden=true;$("quiz").hidden=false;show()};
+show();
+</script>
+</body>
+</html>
